@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCWI Women in STEM Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple-dark: #3b1f6e;
+    --purple-mid: #5c3d9e;
+    --purple-pale: #ede8f8;
+    --white: #ffffff;
+    --text-dark: #1a1025;
+    --text-mid: #4a3a6a;
+    --correct: #2d7a4f;
+    --correct-bg: #d4f0e2;
+    --incorrect: #b33030;
+    --incorrect-bg: #fde8e8;
+    --border: #c8bce8;
+    --gold: #b8860b;
+    --gold-bg: #fff8e1;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--purple-pale);
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .screen { display: none; width: 100%; max-width: 820px; }
+  .screen.active { display: block; }
+
+  /* ── SHARED ── */
+  .site-header { text-align: center; margin-bottom: 2.5rem; }
+  .site-header .eyebrow {
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--purple-mid); margin-bottom: 0.5rem;
+  }
+  .site-header h1 {
+    font-family: 'DM Serif Display', serif; font-size: 2.4rem;
+    color: var(--purple-dark); line-height: 1.2;
+  }
+  .site-header p {
+    margin-top: 0.75rem; color: var(--text-mid); font-size: 1rem;
+    max-width: 480px; margin-left: auto; margin-right: auto;
+  }
+  .ncwi-footer {
+    margin-top: 2.5rem; text-align: center;
+    font-size: 0.75rem; color: var(--text-mid); letter-spacing: 0.05em;
+  }
+  .btn-primary {
+    background: var(--purple-dark); color: var(--white); border: none;
+    border-radius: 8px; padding: 0.8rem 2rem; font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--purple-mid); }
+  .btn-secondary {
+    background: var(--white); color: var(--purple-dark); border: 2px solid var(--purple-dark);
+    border-radius: 8px; padding: 0.8rem 2rem; font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: background 0.15s;
+  }
+  .btn-secondary:hover { background: var(--purple-pale); }
+
+  /* ── SCREEN 1: DIFFICULTY ── */
+  .difficulty-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem; margin-top: 2rem;
+  }
+  .diff-card {
+    background: var(--white); border: 2px solid var(--border); border-radius: 12px;
+    padding: 2rem 1.5rem; text-align: center; cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s, box-shadow 0.15s;
+  }
+  .diff-card:hover {
+    border-color: var(--purple-mid); transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(92,61,158,0.15);
+  }
+  .diff-card .icon { font-size: 2.25rem; margin-bottom: 0.75rem; }
+  .diff-card h2 {
+    font-family: 'DM Serif Display', serif; font-size: 1.35rem;
+    color: var(--purple-dark); margin-bottom: 0.4rem;
+  }
+  .diff-card p { font-size: 0.85rem; color: var(--text-mid); line-height: 1.5; }
+  .diff-card .tag {
+    display: inline-block; margin-top: 1rem; padding: 0.25rem 0.75rem;
+    border-radius: 100px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;
+  }
+  .diff-easy .tag   { background: var(--correct-bg); color: var(--correct); }
+  .diff-medium .tag { background: #fff3d4; color: #7a5500; }
+  .diff-hard .tag   { background: var(--incorrect-bg); color: var(--incorrect); }
+
+  /* ── LOADING ── */
+  .loading-card {
+    background: var(--white); border: 2px solid var(--border); border-radius: 12px;
+    padding: 3rem; text-align: center;
+  }
+  .loading-card p { color: var(--text-mid); font-size: 1rem; }
+  .loading-dots::after { content: ''; animation: dots 1.5s infinite; }
+  @keyframes dots { 0%{content:''} 33%{content:'.'} 66%{content:'..'} 100%{content:'...'} }
+
+  /* ── SCREEN 2: QUIZ ── */
+  .quiz-meta {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 1.25rem;
+  }
+  .quiz-meta .q-label {
+    font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--purple-mid);
+  }
+  .score-badge {
+    background: var(--purple-dark); color: var(--white);
+    font-size: 0.85rem; font-weight: 700; padding: 0.3rem 1rem; border-radius: 100px;
+  }
+  .progress-bar-wrap {
+    background: var(--border); border-radius: 100px;
+    height: 8px; margin-bottom: 1.5rem; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: var(--purple-mid);
+    border-radius: 100px; transition: width 0.4s ease;
+  }
+  .question-card {
+    background: var(--white); border: 2px solid var(--border);
+    border-radius: 12px; padding: 2rem 2.5rem; margin-bottom: 1.5rem;
+  }
+  .question-type-tag {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--purple-mid); margin-bottom: 0.75rem;
+    display: block;
+  }
+  .question-card h2 {
+    font-family: 'DM Serif Display', serif; font-size: 1.5rem;
+    color: var(--purple-dark); line-height: 1.4;
+  }
+
+  /* Multiple choice */
+  .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .answer-btn {
+    background: var(--white); border: 2px solid var(--border); border-radius: 10px;
+    padding: 1rem 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+    font-weight: 500; color: var(--text-dark); cursor: pointer; text-align: left;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .answer-btn .letter {
+    width: 28px; height: 28px; border-radius: 6px; background: var(--purple-pale);
+    color: var(--purple-mid); font-weight: 700; font-size: 0.8rem;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .answer-btn:hover:not(:disabled) { border-color: var(--purple-mid); transform: translateY(-2px); }
+  .answer-btn.correct { background: var(--correct-bg); border-color: var(--correct); color: var(--correct); }
+  .answer-btn.correct .letter { background: var(--correct); color: white; }
+  .answer-btn.incorrect { background: var(--incorrect-bg); border-color: var(--incorrect); color: var(--incorrect); }
+  .answer-btn.incorrect .letter { background: var(--incorrect); color: white; }
+  .answer-btn:disabled { cursor: default; }
+
+  /* True / False */
+  .tf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .tf-btn {
+    background: var(--white); border: 2px solid var(--border); border-radius: 10px;
+    padding: 1.25rem; font-family: 'DM Serif Display', serif; font-size: 1.25rem;
+    color: var(--text-dark); cursor: pointer; text-align: center;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  }
+  .tf-btn:hover:not(:disabled) { border-color: var(--purple-mid); transform: translateY(-2px); }
+  .tf-btn.correct { background: var(--correct-bg); border-color: var(--correct); color: var(--correct); }
+  .tf-btn.incorrect { background: var(--incorrect-bg); border-color: var(--incorrect); color: var(--incorrect); }
+  .tf-btn:disabled { cursor: default; }
+
+  /* Fill in the blank */
+  .fitb-wrap { display: flex; gap: 0.75rem; align-items: center; }
+  .fitb-input {
+    flex: 1; padding: 0.875rem 1rem; border: 2px solid var(--border); border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 1rem; color: var(--text-dark);
+    outline: none; transition: border-color 0.15s;
+  }
+  .fitb-input:focus { border-color: var(--purple-mid); }
+  .fitb-input.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .fitb-input.incorrect { border-color: var(--incorrect); background: var(--incorrect-bg); color: var(--incorrect); }
+  .fitb-submit {
+    background: var(--purple-dark); color: white; border: none; border-radius: 10px;
+    padding: 0.875rem 1.5rem; font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+    font-weight: 700; cursor: pointer; transition: background 0.15s; white-space: nowrap;
+  }
+  .fitb-submit:hover:not(:disabled) { background: var(--purple-mid); }
+  .fitb-submit:disabled { opacity: 0.5; cursor: default; }
+
+  .feedback-bar {
+    min-height: 2.5rem; display: flex;
+    align-items: center; justify-content: space-between; margin-top: 1.25rem;
+  }
+  .feedback-text { font-weight: 600; font-size: 0.95rem; }
+  .feedback-text.correct { color: var(--correct); }
+  .feedback-text.incorrect { color: var(--incorrect); }
+  .next-btn {
+    background: var(--purple-dark); color: var(--white); border: none;
+    border-radius: 8px; padding: 0.65rem 1.5rem; font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.15s; display: none;
+  }
+  .next-btn:hover { background: var(--purple-mid); }
+  .next-btn.visible { display: inline-block; }
+
+  /* ── SCREEN 3: RESULTS ── */
+  .results-card {
+    background: var(--white); border: 2px solid var(--border);
+    border-radius: 12px; padding: 3rem 2.5rem; text-align: center;
+  }
+  .big-score {
+    font-family: 'DM Serif Display', serif; font-size: 5rem;
+    color: var(--purple-dark); line-height: 1;
+  }
+  .score-label { font-size: 1rem; color: var(--text-mid); margin-top: 0.25rem; margin-bottom: 2rem; }
+  .result-msg { font-size: 1.1rem; color: var(--text-dark); margin-bottom: 2rem; font-weight: 500; }
+  .results-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .share-confirm { margin-top: 1rem; font-size: 0.85rem; color: var(--purple-mid); min-height: 1.2rem; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ SCREEN 1: DIFFICULTY ══════════ -->
+<div id="screen-difficulty" class="screen active">
+  <div class="site-header">
+    <div class="eyebrow">NCWI Women in STEM</div>
+    <h1>How much do you know?</h1>
+    <p>Test your knowledge of the women who changed the world. Choose your difficulty to begin.</p>
+  </div>
+  <div class="difficulty-grid">
+    <div class="diff-card diff-easy" onclick="startQuiz('easy')">
+      <div class="icon">🌱</div>
+      <h2>Easy</h2>
+      <p>True or False questions about women innovators and their backgrounds.</p>
+      <span class="tag">True / False</span>
+    </div>
+    <div class="diff-card diff-medium" onclick="startQuiz('medium')">
+      <div class="icon">🔬</div>
+      <h2>Medium</h2>
+      <p>Multiple choice questions connecting women to their fields and innovations.</p>
+      <span class="tag">Multiple Choice</span>
+    </div>
+    <div class="diff-card diff-hard" onclick="startQuiz('hard')">
+      <div class="icon">🏆</div>
+      <h2>Hard</h2>
+      <p>Fill in the blank — no hints, just what you know.</p>
+      <span class="tag">Free Response</span>
+    </div>
+  </div>
+  <div class="ncwi-footer">National Center for Women's Innovation</div>
+</div>
+
+<!-- ══════════ SCREEN 1.5: LOADING ══════════ -->
+<div id="screen-loading" class="screen">
+  <div class="loading-card">
+    <p>Loading questions<span class="loading-dots"></span></p>
+  </div>
+</div>
+
+<!-- ══════════ SCREEN 2: QUIZ ══════════ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-meta">
+    <span class="q-label" id="q-counter">Question 1 of 5</span>
+    <span class="score-badge" id="score-display">Score: 0</span>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+  </div>
+
+  <div class="question-card">
+    <span class="question-type-tag" id="question-type-tag"></span>
+    <h2 id="question-text">Loading...</h2>
+  </div>
+
+  <!-- Multiple choice -->
+  <div class="answers-grid" id="answers-grid" style="display:none"></div>
+
+  <!-- True / False -->
+  <div class="tf-grid" id="tf-grid" style="display:none">
+    <button class="tf-btn" id="tf-true"  onclick="selectTF(true)">True</button>
+    <button class="tf-btn" id="tf-false" onclick="selectTF(false)">False</button>
+  </div>
+
+  <!-- Fill in the blank -->
+  <div class="fitb-wrap" id="fitb-wrap" style="display:none">
+    <input type="text" class="fitb-input" id="fitb-input" placeholder="Type your answer...">
+    <button class="fitb-submit" id="fitb-submit" onclick="submitFITB()">Submit</button>
+  </div>
+
+  <div class="feedback-bar">
+    <span class="feedback-text" id="feedback-text"></span>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next →</button>
+  </div>
+</div>
+
+<!-- ══════════ SCREEN 3: RESULTS ══════════ -->
+<div id="screen-results" class="screen">
+  <div class="site-header">
+    <div class="eyebrow">Quiz Complete</div>
+    <h1>Here's how you did</h1>
+  </div>
+  <div class="results-card">
+    <div class="big-score" id="final-score">0/5</div>
+    <div class="score-label" id="score-pct">0% correct</div>
+    <div class="result-msg"  id="result-msg"></div>
+    <div class="results-actions">
+      <button class="btn-primary"   onclick="goHome()">Play Again</button>
+      <button class="btn-secondary" onclick="shareResults()">Share Results</button>
+    </div>
+    <div class="share-confirm" id="share-confirm"></div>
+  </div>
+  <div class="ncwi-footer">National Center for Women's Innovation</div>
+</div>
+
+<script src="quiz.js"></script>
+</body>
+</html>
