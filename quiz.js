@@ -5,7 +5,7 @@
 // To run: make sure server.js is running with `node server.js`
 // =============================================================
 
-const API_BASE    = 'http://localhost:3000/api'
+const API_BASE = 'https://ncwi-quiz-production.up.railway.app/api'
 const TOTAL_QS    = 5
 const LETTERS     = ['A', 'B', 'C', 'D']
 
